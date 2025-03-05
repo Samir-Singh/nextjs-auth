@@ -1,40 +1,33 @@
 "use client";
-import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { login } from "@/services/api";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    space_id: 54410,
-    pin: 83021,
+    email: "saif.nizami@awfis.com",
+    password: "qazwsx1@S",
   });
 
   const handleLogin = async () => {
-    const response = await axios.post(
-      "https://betaapis.awfis.com/api/v2/login",
-      {
-        space_id: formData?.space_id,
-        pin: formData?.pin,
-        vms_device_id: "react_vms",
-      },
-      {
-        headers: {
-          app_id: 15,
-        },
-      }
-    );
+    try {
+      const response = await login(formData.email, formData.password);
 
-    Cookies.set("authToken", response?.data?.data[0]?.token, {
-      expires: 7,
-      secure: true,
-      sameSite: "Strict",
-    });
+      Cookies.set("authToken", response?.data?.token, {
+        expires: 7,
+        secure: true,
+        sameSite: "Strict",
+      });
 
-    localStorage.setItem("authToken", response?.data?.data[0]?.token);
+      localStorage.setItem("authToken", response?.data?.token);
 
-    router?.replace("/dashboard");
+      router?.replace("/dashboard");
+    } catch (error) {
+      toast.error(String(error));
+    }
   };
 
   return (
@@ -42,21 +35,21 @@ export default function Home() {
       <h1>Login Page</h1>
 
       <input
-        value={formData?.space_id}
+        value={formData?.email}
         onChange={(e) =>
           setFormData((prev) => ({
             ...prev,
-            space_id: Number(e.target.value),
+            email: e.target.value,
           }))
         }
         className="border mt-10"
       />
       <input
-        value={formData?.pin}
+        value={formData?.password}
         onChange={(e) =>
           setFormData((prev) => ({
             ...prev,
-            pin: Number(e.target.value),
+            password: e.target.value,
           }))
         }
         className="border mt-5"
